@@ -1,0 +1,295 @@
+<title>Balise ZONE expliquée</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Mise en page : une colonne de lecture, des « dépliants » <details> par bloc de code, une carte des 25 octets de la trame */
+:root{
+  --bg:#f5f7fa; --surface:#ffffff; --fg:#17202e; --muted:#566275; --line:#d9dfe8;
+  --accent:#1f5fae; --accent-soft:#e3ecf8; --zone:#1d8a5a; --code-bg:#eef2f7; --comment:#6b7a8f;
+  --b-head:#c7d7ef; --b-uuid:#d6e9dc; --b-major:#f6dfb8; --b-minor:#f2cfd6; --b-pow:#ddd3f0;
+  --font-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10151d; --surface:#171e29; --fg:#e4e9f1; --muted:#9aa6b8; --line:#2a3443;
+  --accent:#6fa3ea; --accent-soft:#1d2b40; --zone:#4cc28d; --code-bg:#0c1118; --comment:#7d8ba0;
+  --b-head:#24395a; --b-uuid:#1f3a2c; --b-major:#4a3a1c; --b-minor:#4a2530; --b-pow:#33294d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151d; --surface:#171e29; --fg:#e4e9f1; --muted:#9aa6b8; --line:#2a3443;
+  --accent:#6fa3ea; --accent-soft:#1d2b40; --zone:#4cc28d; --code-bg:#0c1118; --comment:#7d8ba0;
+  --b-head:#24395a; --b-uuid:#1f3a2c; --b-major:#4a3a1c; --b-minor:#4a2530; --b-pow:#33294d; color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:8px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-size:30px;line-height:1.2;margin:0;text-wrap:balance}
+h1 span{color:var(--zone)}
+.lead{margin:0;color:var(--muted);max-width:65ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 0;padding:0;list-style:none}
+.facts li{font-family:var(--font-mono);font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:3px 9px}
+
+.howto{font-size:14px;color:var(--muted);margin:0}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+button{font:500 14px var(--font-body);color:var(--accent);background:var(--accent-soft);border:1px solid transparent;border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.list{display:flex;flex-direction:column;gap:10px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+details[open]{border-color:var(--accent)}
+summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:baseline;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary .n{font-family:var(--font-mono);font-size:13px;color:var(--accent);min-width:2ch}
+summary .t{font-weight:600;flex:1;min-width:0}
+summary .lines{font-family:var(--font-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+summary::after{content:"+";font-family:var(--font-mono);color:var(--accent);font-size:18px;line-height:1}
+details[open] summary::after{content:"−"}
+.body{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+.body p{margin:0;max-width:65ch}
+.body ul{margin:0;padding-left:20px}
+.body li{margin:2px 0}
+pre{margin:0;background:var(--code-bg);border-radius:6px;padding:12px 14px;overflow-x:auto;font:13.5px/1.55 var(--font-mono)}
+code{font-family:var(--font-mono);font-size:.9em}
+p code,li code{background:var(--code-bg);padding:1px 5px;border-radius:4px}
+.c{color:var(--comment)}
+.k{color:var(--accent)}
+.note{border-left:3px solid var(--zone);padding:6px 12px;background:var(--code-bg);border-radius:0 6px 6px 0;font-size:15px}
+
+/* carte de la trame */
+.frame-wrap{overflow-x:auto}
+.frame{display:grid;grid-template-columns:repeat(25,minmax(26px,1fr));gap:2px;min-width:680px;font-family:var(--font-mono);font-size:11px;text-align:center}
+.frame div{padding:6px 0;border-radius:3px;color:var(--fg);font-variant-numeric:tabular-nums}
+.frame .h{background:var(--b-head)} .frame .u{background:var(--b-uuid)} .frame .ma{background:var(--b-major)} .frame .mi{background:var(--b-minor)} .frame .p{background:var(--b-pow)}
+.frame .idx{background:none;color:var(--muted);padding:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;margin:0;padding:0;list-style:none}
+.legend li{display:flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:3px;display:inline-block}
+
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+td:first-child{font-family:var(--font-mono);white-space:nowrap}
+.tbl{overflow-x:auto}
+footer{font-size:13px;color:var(--muted)}
+@media (max-width:480px){h1{font-size:25px} summary .lines{display:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TAB-Géoloc · code de Samy · Samy_Balise_ZONE.ino</div>
+    <h1>Balise <span>ZONE 1</span> : le code expliqué</h1>
+    <p class="lead">Ce programme transforme la carte ESP-32 en petit phare Bluetooth : toutes les 100 ms, elle crie « je suis la balise ZONE n°1 » à faible puissance. Elle ne reçoit rien, elle ne se connecte à personne. C'est le Tab5 qui écoute et mesure la force du signal (RSSI) pour savoir s'il est proche.</p>
+    <ul class="facts">
+      <li>ESP-32 (micro-USB)</li><li>iBeacon</li><li>+3 dBm</li><li>1 trame / 100 ms</li><li>non connectable</li>
+    </ul>
+  </header>
+
+  <p class="howto">Clique sur un bloc pour le déplier. Chaque bloc montre un morceau du code puis ce qu'il fait.</p>
+  <div class="toolbar">
+    <button type="button" id="open-all">Tout déplier</button>
+    <button type="button" id="close-all">Tout replier</button>
+  </div>
+
+  <div class="list">
+
+    <details>
+      <summary><span class="n">1</span><span class="t">Les bibliothèques</span><span class="lines">lignes 14-15</span></summary>
+      <div class="body">
+<pre><span class="k">#include</span> &lt;BLEDevice.h&gt;
+<span class="k">#include</span> &lt;BLEAdvertising.h&gt;</pre>
+        <p>On charge les outils Bluetooth Low Energy (BLE) fournis avec le paquet ESP32 d'Arduino.</p>
+        <ul>
+          <li><code>BLEDevice</code> : allumer et régler le Bluetooth de la carte.</li>
+          <li><code>BLEAdvertising</code> : envoyer des « annonces », c'est-à-dire des petits messages diffusés à tout le monde, sans connexion.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">2</span><span class="t">Les réglages de la balise</span><span class="lines">lignes 17-18</span></summary>
+      <div class="body">
+<pre><span class="k">#define</span> TYPE_BALISE   1   <span class="c">// 1 = ZONE, 2 = OBSTACLE</span>
+<span class="k">#define</span> NUMERO_BALISE 1   <span class="c">// numéro de la balise</span></pre>
+        <p>Ce sont les deux seules valeurs qui changent d'une balise à l'autre.</p>
+        <ul>
+          <li><code>TYPE_BALISE 1</code> : ta balise est une balise <strong>ZONE</strong> (elle repère une salle ou un couloir). Celle de Steffy vaut 2 (OBSTACLE).</li>
+          <li><code>NUMERO_BALISE 1</code> : c'est la ZONE n°1. Avec plus de balises, on aurait ZONE 2, ZONE 3…</li>
+        </ul>
+        <p class="note">Dans le vocabulaire iBeacon, le type s'appelle « major » et le numéro « minor ».</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">3</span><span class="t">L'identifiant commun (UUID)</span><span class="lines">lignes 22-23</span></summary>
+      <div class="body">
+<pre><span class="k">const uint8_t</span> UUID_TABGEO[16] = {0x7A, 0xB0, 0x6E, 0x01, 0x5E, 0xE5, 0x40, 0x26,
+                                 0x9A, 0x1B, 0x15, 0x7E, 0x5E, 0xE5, 0x20, 0x26};</pre>
+        <p>16 octets écrits en hexadécimal (<code>0x7A</code> = 122). C'est la « signature » de toutes nos balises : la même dans le programme de Steffy et dans celui du Tab5.</p>
+        <p>Autour de nous il y a plein d'appareils Bluetooth (téléphones, montres, écouteurs). Le Tab5 compare l'UUID de chaque message reçu avec celui-ci : s'il est différent, il ignore le message. C'est la protection « seules nos balises comptent » de la spec.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">4</span><span class="t">Puissance à 1 m et LED</span><span class="lines">lignes 24-25</span></summary>
+      <div class="body">
+<pre><span class="k">const int8_t</span> PUISSANCE_1M = -59;  <span class="c">// champ "puissance à 1 m" (indicatif)</span>
+<span class="k">const int</span> LED = 2;                <span class="c">// LED bleue de la carte</span></pre>
+        <ul>
+          <li><code>PUISSANCE_1M</code> : le format iBeacon prévoit une case « RSSI attendu à 1 m ». On met une valeur typique (−59 dBm). Le Tab5 ne s'en sert pas : il utilise la valeur qu'on mesure nous-mêmes à la calibration.</li>
+          <li><code>LED = 2</code> : sur la plupart des cartes ESP32, la LED bleue est branchée sur la broche (GPIO) 2.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">5</span><span class="t">Démarrer le Bluetooth à +3 dBm</span><span class="lines">lignes 27-32</span></summary>
+      <div class="body">
+<pre><span class="k">void</span> setup() {
+  Serial.begin(115200);
+  pinMode(LED, OUTPUT);
+
+  BLEDevice::init("TABGEO");
+  BLEDevice::setPower(ESP_PWR_LVL_P3);  <span class="c">// +3 dBm</span></pre>
+        <p><code>setup()</code> s'exécute une seule fois, au démarrage de la carte.</p>
+        <ul>
+          <li><code>Serial.begin(115200)</code> : ouvre la liaison avec le moniteur série d'Arduino, à 115200 bauds.</li>
+          <li><code>pinMode(LED, OUTPUT)</code> : la broche de la LED devient une sortie.</li>
+          <li><code>BLEDevice::init("TABGEO")</code> : allume le Bluetooth et donne le nom « TABGEO » à la carte. C'est ce nom qu'on voit dans nRF Connect.</li>
+          <li><code>setPower(ESP_PWR_LVL_P3)</code> : règle la puissance d'émission à <strong>+3 dBm (2 mW)</strong>. La carte pourrait monter à +9 dBm, mais la spec choisit +3 dBm pour que la balise ne soit entendue que près d'elle et pour économiser la batterie.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">6</span><span class="t">Construire la trame iBeacon (25 octets)</span><span class="lines">lignes 34-42</span></summary>
+      <div class="body">
+<pre><span class="k">uint8_t</span> t[25] = {0x4C, 0x00, 0x02, 0x15};
+memcpy(t + 4, UUID_TABGEO, 16);
+t[20] = 0;  t[21] = TYPE_BALISE;
+t[22] = 0;  t[23] = NUMERO_BALISE;
+t[24] = (uint8_t)PUISSANCE_1M;
+String trame;
+<span class="k">for</span> (int i = 0; i &lt; 25; i++) trame += (char)t[i];</pre>
+        <p>On remplit un tableau de 25 octets case par case, dans l'ordre imposé par le format iBeacon :</p>
+        <div class="frame-wrap">
+          <div class="frame" role="img" aria-label="Trame iBeacon de 25 octets : 4 octets d'en-tête, 16 octets d'UUID, 2 octets major, 2 octets minor, 1 octet de puissance">
+            <div class="idx">0</div><div class="idx">1</div><div class="idx">2</div><div class="idx">3</div><div class="idx">4</div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx"></div><div class="idx">19</div><div class="idx">20</div><div class="idx">21</div><div class="idx">22</div><div class="idx">23</div><div class="idx">24</div>
+            <div class="h">4C</div><div class="h">00</div><div class="h">02</div><div class="h">15</div>
+            <div class="u">7A</div><div class="u">B0</div><div class="u">6E</div><div class="u">01</div><div class="u">5E</div><div class="u">E5</div><div class="u">40</div><div class="u">26</div><div class="u">9A</div><div class="u">1B</div><div class="u">15</div><div class="u">7E</div><div class="u">5E</div><div class="u">E5</div><div class="u">20</div><div class="u">26</div>
+            <div class="ma">00</div><div class="ma">01</div><div class="mi">00</div><div class="mi">01</div><div class="p">C5</div>
+          </div>
+        </div>
+        <ul class="legend">
+          <li><span class="sw" style="background:var(--b-head)"></span>En-tête iBeacon</li>
+          <li><span class="sw" style="background:var(--b-uuid)"></span>UUID (notre signature)</li>
+          <li><span class="sw" style="background:var(--b-major)"></span>Major = type (01 = ZONE)</li>
+          <li><span class="sw" style="background:var(--b-minor)"></span>Minor = numéro (01)</li>
+          <li><span class="sw" style="background:var(--b-pow)"></span>Puissance à 1 m (C5 = −59)</li>
+        </ul>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Octets</th><th>Contenu</th><th>Pourquoi</th></tr></thead>
+            <tbody>
+              <tr><td>0-1</td><td>4C 00</td><td>Code fabricant d'Apple : c'est la convention du format iBeacon.</td></tr>
+              <tr><td>2-3</td><td>02 15</td><td>« Je suis un iBeacon, et il reste 21 octets » (0x15 = 21).</td></tr>
+              <tr><td>4-19</td><td>UUID</td><td>Copié d'un coup avec <code>memcpy</code> (copie de 16 octets).</td></tr>
+              <tr><td>20-21</td><td>00 01</td><td>Major sur 2 octets : le type (ZONE = 1).</td></tr>
+              <tr><td>22-23</td><td>00 01</td><td>Minor sur 2 octets : le numéro de la balise.</td></tr>
+              <tr><td>24</td><td>C5</td><td>−59 écrit sur un octet (−59 + 256 = 197 = 0xC5).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Les deux dernières lignes recopient les 25 octets dans un <code>String</code>, parce que la fonction Bluetooth de l'étape suivante attend ce type. On copie octet par octet car la trame contient des <code>0x00</code>, qui couperaient un texte normal.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">7</span><span class="t">Mettre la trame dans l'annonce</span><span class="lines">lignes 44-46</span></summary>
+      <div class="body">
+<pre>BLEAdvertisementData donnees;
+donnees.setFlags(0x04);              <span class="c">// Bluetooth LE seul</span>
+donnees.setManufacturerData(trame);</pre>
+        <ul>
+          <li><code>BLEAdvertisementData</code> : le contenu de l'annonce, comme une enveloppe.</li>
+          <li><code>setFlags(0x04)</code> : indique « Bluetooth Low Energy uniquement, pas de Bluetooth classique ».</li>
+          <li><code>setManufacturerData(trame)</code> : on glisse nos 25 octets dans la case « données du fabricant ». C'est là que le Tab5 ira les lire.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">8</span><span class="t">Régler et lancer l'émission</span><span class="lines">lignes 48-59</span></summary>
+      <div class="body">
+<pre>BLEAdvertising* annonce = BLEDevice::getAdvertising();
+annonce-&gt;setAdvertisementData(donnees);
+annonce-&gt;setScanResponse(false);
+<span class="k">#if</span> defined(CONFIG_BLUEDROID_ENABLED)
+annonce-&gt;setAdvertisementType(ADV_TYPE_NONCONN_IND);
+<span class="k">#elif</span> defined(CONFIG_NIMBLE_ENABLED)
+annonce-&gt;setAdvertisementType(BLE_GAP_CONN_MODE_NON);
+<span class="k">#endif</span>
+annonce-&gt;setMinInterval(160);   <span class="c">// 160 x 0,625 ms = 100 ms</span>
+annonce-&gt;setMaxInterval(160);
+annonce-&gt;start();</pre>
+        <ul>
+          <li><code>getAdvertising()</code> : récupère « l'émetteur d'annonces » de la carte.</li>
+          <li><code>setAdvertisementData(donnees)</code> : lui donne notre enveloppe.</li>
+          <li><code>setScanResponse(false)</code> : la balise ne répond pas si un appareil lui demande plus d'informations. Elle parle, elle n'écoute pas.</li>
+          <li><code>#if … #elif … #endif</code> : Arduino peut utiliser deux « moteurs » Bluetooth (Bluedroid ou NimBLE) qui n'écrivent pas le réglage de la même façon. Ces lignes choisissent automatiquement la bonne version. Dans les deux cas, on rend la balise <strong>non connectable</strong> : impossible de s'y connecter ou de la pirater par Bluetooth.</li>
+          <li><code>setMinInterval(160)</code> et <code>setMaxInterval(160)</code> : le temps entre deux annonces se compte en unités de 0,625 ms. 160 × 0,625 = <strong>100 ms</strong>, soit 10 trames par seconde, comme dans la spec.</li>
+          <li><code>start()</code> : la balise commence à émettre. À partir de là, c'est la puce Bluetooth qui envoie les trames toute seule, sans que le programme ait à s'en occuper.</li>
+        </ul>
+        <p class="note">Chaque annonce part sur les 3 canaux 37, 38 et 39 (2402, 2426 et 2480 MHz). C'est automatique.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">9</span><span class="t">Le message au moniteur série</span><span class="lines">lignes 61-62</span></summary>
+      <div class="body">
+<pre>Serial.printf("Balise %s n°%d : 1 trame toutes les 100 ms a +3 dBm\n",
+              TYPE_BALISE == 1 ? "ZONE" : "OBSTACLE", NUMERO_BALISE);</pre>
+        <p>Affiche un message de confirmation dans le moniteur série. <code>TYPE_BALISE == 1 ? "ZONE" : "OBSTACLE"</code> veut dire : si le type vaut 1, écrire « ZONE », sinon écrire « OBSTACLE ». Tu dois donc lire : <code>Balise ZONE n°1 : 1 trame toutes les 100 ms a +3 dBm</code>.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">10</span><span class="t">La boucle : faire clignoter la LED</span><span class="lines">lignes 65-68</span></summary>
+      <div class="body">
+<pre><span class="k">void</span> loop() {
+  digitalWrite(LED, (millis() / 1000) % 2);
+  delay(50);
+}</pre>
+        <p><code>loop()</code> tourne en boucle sans fin. Elle ne s'occupe pas du Bluetooth (la puce s'en charge seule), elle fait juste clignoter la LED pour montrer que la balise est vivante.</p>
+        <ul>
+          <li><code>millis()</code> : le temps écoulé depuis le démarrage, en millisecondes.</li>
+          <li><code>/ 1000</code> : le transforme en secondes (0, 1, 2, 3…).</li>
+          <li><code>% 2</code> : le reste de la division par 2, qui alterne 0, 1, 0, 1… à chaque seconde. La LED s'allume une seconde sur deux.</li>
+          <li><code>delay(50)</code> : petite pause de 50 ms pour ne pas faire tourner la boucle pour rien.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">?</span><span class="t">Questions que le prof peut poser</span><span class="lines">oral</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Pourquoi +3 dBm et pas plus ?</strong> Une balise faible n'est entendue que près d'elle, donc le Tab5 sait mieux de quelle balise il est proche. Et la batterie dure plus longtemps. PIRE = 3 + 2 dBi = +5 dBm, loin de la limite de 20 dBm.</li>
+          <li><strong>Pourquoi 100 ms ?</strong> 10 mesures par seconde : assez pour faire une moyenne et donner l'alerte en moins de 2 s. La balise émet environ 1 % du temps seulement.</li>
+          <li><strong>Pourquoi non connectable ?</strong> On n'a pas besoin de connexion, juste du RSSI. C'est plus simple, plusieurs Tab5 peuvent écouter en même temps, et personne ne peut se connecter à la balise.</li>
+          <li><strong>Comment le Tab5 reconnaît nos balises ?</strong> Il vérifie l'en-tête iBeacon puis l'UUID. Ensuite le major lui dit le type (zone ou obstacle) et le minor le numéro.</li>
+          <li><strong>Limite ?</strong> La trame n'est pas chiffrée : quelqu'un pourrait copier la balise. Accepté pour un prototype d'école.</li>
+        </ul>
+      </div>
+    </details>
+
+  </div>
+  <footer>Projet TAB-Géoloc · SEE5 ISTY · balise programmée sur ESP-32 avec le paquet « esp32 by Espressif » 3.3.x</footer>
+</div>
+
+<script>
+  const all = () => document.querySelectorAll('details');
+  document.getElementById('open-all').addEventListener('click', () => all().forEach(d => d.open = true));
+  document.getElementById('close-all').addEventListener('click', () => all().forEach(d => d.open = false));
+</script>
