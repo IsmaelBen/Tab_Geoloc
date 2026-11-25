@@ -9,8 +9,9 @@
     2. On se place sur une marque avec le Tab5 porté sur le torse, on touche le bouton de cette distance.
     3. Le Tab5 enregistre pendant 15 s (5 mesures par seconde) :
          det1, rssi1 (balise ZONE), det2, rssi2 (balise OBSTACLE), heure, température
-    4. Les mesures partent sur le port USB : sur le PC, lancer
-         python analyse_reseau.py capture COM5 mesures/salle.csv
+    4. Les mesures sont GARDÉES DANS LA MÉMOIRE du Tab5 (on peut donc le débrancher pour marcher).
+       Ensuite on rebranche le Tab5 au PC et on lance 2_enregistrer_mesures.bat :
+       le PC demande au Tab5 d'envoyer toute sa mémoire (commande "ENVOI").
   Conseils : au moins 3 enregistrements par distance, en changeant un peu d'orientation,
              à des moments différents, avec des gens qui passent ou non.
 */
@@ -19,6 +20,7 @@
 #include <BLEDevice.h>
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
+#include <LittleFS.h>
 
 // ============================================================ RÉGLAGES (identiques à Tab5_IA)
 const uint8_t UUID_TABGEO[16] = {0x7A, 0xB0, 0x6E, 0x01, 0x5E, 0xE5, 0x40, 0x26,
@@ -142,6 +144,41 @@ float temperature() {           // capteur interne du Tab5 (dans la centrale ine
   return t;
 }
 
+// ============================================================ MÉMOIRE DU TAB5 (fichier /mesures.csv)
+bool memoire_ok = false;
+uint32_t nb_memoire = 0;
+const char* FICHIER_MEM = "/mesures.csv";
+
+void compter_memoire() {
+  nb_memoire = 0;
+  File fi = LittleFS.open(FICHIER_MEM, "r");
+  if (!fi) return;
+  while (fi.available()) if (fi.read() == '\n') nb_memoire++;
+  fi.close();
+}
+
+// envoie la ligne sur le câble USB (si branché) ET la garde dans la mémoire du Tab5
+void enregistrer_ligne(const char* ligne) {
+  Serial.print(ligne);
+  if (!memoire_ok) return;
+  File fo = LittleFS.open(FICHIER_MEM, "a");
+  if (fo) { fo.print(ligne); fo.close(); nb_memoire++; }
+}
+
+// le PC envoie "ENVOI" : le Tab5 renvoie toute sa mémoire
+void envoyer_memoire() {
+  uint32_t n = 0;
+  File fi = LittleFS.open(FICHIER_MEM, "r");
+  if (fi) {
+    while (fi.available()) {
+      String l = fi.readStringUntil('\n');
+      if (l.length() > 2) { Serial.println(l); n++; }
+    }
+    fi.close();
+  }
+  Serial.printf("# fin envoi memoire : %lu mesures\n", (unsigned long)n);
+}
+
 // ============================================================ ÉCRAN
 M5Canvas ecran(&M5.Display);
 int W, H;
@@ -196,7 +233,8 @@ void dessiner() {
     ecran.setTextColor(TFT_WHITE);
     ecran.drawString("Distance a la balise OBSTACLE :", W / 2, 400);
     char t[64];
-    snprintf(t, sizeof(t), "%lu enregistrements faits", (unsigned long)nb_enreg);
+    snprintf(t, sizeof(t), "%lu enregistrements  -  %lu mesures en memoire%s", (unsigned long)nb_enreg,
+             (unsigned long)nb_memoire, memoire_ok ? "" : " (ERREUR)");
     ecran.setTextColor(TFT_DARKGREY);
     ecran.drawString(t, W / 2, 470);
     ecran.setFont(&fonts::FreeSansBold24pt7b);
@@ -233,7 +271,10 @@ void setup() {
   ecran.createSprite(W, H);
   for (int i = 0; i < NB_BALISES; i++) { lisse[i] = NAN; nb_brut[i] = idx_brut[i] = 0; nb_file[i] = 0; vu_ms[i] = 0; }
   regler_rtc_si_besoin();
-  M5.Speaker.setVolume(180);
+  M5.Speaker.setVolume(120);
+  M5.Display.setBrightness(90);                 // écran moins lumineux : moins de courant (évite les redémarrages)
+  memoire_ok = LittleFS.begin(true);            // true = formate la mémoire la première fois
+  if (memoire_ok) compter_memoire();
   session = esp_random() % 900000 + 100000;   // numéro unique (évite les doublons si le Tab5 redémarre)
 
   WiFi.setPins(12, 13, 11, 10, 9, 8, 15);
@@ -252,6 +293,13 @@ uint32_t dernier = 0, dernier_dessin = 0, dernier_controle = 0;
 void loop() {
   M5.update();
   lire_balises();
+
+  // commande du PC : "ENVOI" -> renvoyer toute la mémoire
+  if (Serial.available()) {
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim();
+    if (cmd == "ENVOI") envoyer_memoire();
+  }
 
   // toucher un bouton = démarrer un enregistrement de 15 s
   if (!enreg && M5.Touch.getCount() > 0) {
@@ -275,9 +323,11 @@ void loop() {
       rssi_aff[i] = d ? lisse[i] : RSSI_ABSENT;
     }
     if (enreg) {
-      Serial.printf("M;%lu;%lu;%.1f;%d;%.1f;%d;%.1f;%.4f;%.1f\n", (unsigned long)session,
-                    (unsigned long)(millis() - debut_enreg), DISTANCES[dist_choisie],
-                    (int)det_aff[0], rssi_aff[0], (int)det_aff[1], rssi_aff[1], heure_decimale(), temperature());
+      char ligne[120];
+      snprintf(ligne, sizeof(ligne), "M;%lu;%lu;%.1f;%d;%.1f;%d;%.1f;%.4f;%.1f\n", (unsigned long)session,
+               (unsigned long)(millis() - debut_enreg), DISTANCES[dist_choisie],
+               (int)det_aff[0], rssi_aff[0], (int)det_aff[1], rssi_aff[1], heure_decimale(), temperature());
+      enregistrer_ligne(ligne);
       nb_lignes++;
       if (millis() - debut_enreg >= DUREE_ENREG_MS) {
         enreg = false; nb_enreg++;

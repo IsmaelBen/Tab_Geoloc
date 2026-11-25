@@ -56,7 +56,7 @@ Le calcul du réseau sur le Tab5 a été vérifié : mêmes probabilités qu'en 
 |---|---|
 | `0_installer.bat` | installe les bibliothèques Python (une seule fois) |
 | `1_envoyer_collecte_sur_Tab5.bat` | compile et envoie le programme de collecte sur le Tab5 |
-| `2_enregistrer_mesures.bat` | enregistre les mesures envoyées par le Tab5 dans `mesures/` |
+| `2_enregistrer_mesures.bat` | récupère les mesures gardées dans la mémoire du Tab5 (on peut le débrancher pour mesurer) |
 | `3_entrainer_reseau.bat` | compare les réseaux, entraîne le meilleur, crée `modele.h` et les graphiques |
 | `4_envoyer_IA_sur_Tab5.bat` | envoie le programme IA (avec le nouveau modèle) sur le Tab5 |
 

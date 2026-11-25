@@ -84,10 +84,8 @@ def trouver_port():
     from serial.tools import list_ports
     ports = list(list_ports.comports())
     for p in ports:
-        if p.vid == 0x303A:
+        if p.vid == 0x303A:          # seulement le Tab5 (les cartes des balises ont une autre puce USB)
             return p.device
-    if len(ports) == 1:
-        return ports[0].device
     sys.exit("Tab5 introuvable. Ports vus : %s. Branche le Tab5 (câble USB-C données) et allume-le."
              % ([p.device for p in ports] or "aucun"))
 
@@ -154,21 +152,32 @@ def capture(port, fichier):
     if port.upper() == "AUTO":
         port = trouver_port()
     if fichier.upper() == "AUTO":                 # nom de fichier automatique avec la date et l'heure
-        fichier = os.path.join(DOSSIER_MESURES, time.strftime("mesures_%Y%m%d_%H%M.csv"))
+        fichier = os.path.join(DOSSIER_MESURES, "mesures_tab5.csv")   # toujours le même fichier : pas de doublons
     os.makedirs(os.path.dirname(fichier) or ".", exist_ok=True)
     print("Écoute de %s -> %s   (Ctrl+C pour arrêter)" % (port, fichier))
     nb = 0
+    deja = set()                                   # lignes déjà enregistrées (évite les doublons)
+    if os.path.isfile(fichier):
+        for l in open(fichier, encoding="utf-8"):
+            deja.add(";".join(l.strip().split(";")[:2]))
     with open(fichier, "a", encoding="utf-8") as f:
         if f.tell() == 0:
-            f.write(";".join(COLONNES) + "\n")
+            f.write(";".join(COLONNES) + "\n"); f.flush()
         try:
             while True:
                 # si le Tab5 redémarre ou est débranché, on attend qu'il revienne et on reprend
                 try:
                     with serial.Serial(port, 115200, timeout=1) as s:
+                        time.sleep(1.5)
+                        s.write(b"ENVOI\n")                 # demande au Tab5 toute sa mémoire
+                        print("  Récupération de la mémoire du Tab5...")
                         while True:
                             ligne = s.readline().decode("utf-8", "ignore").strip()
                             if ligne.startswith("M;"):      # seules les lignes de mesure commencent par "M;"
+                                cle = ";".join(ligne[2:].split(";")[:2])   # session + temps
+                                if cle in deja:
+                                    continue
+                                deja.add(cle)
                                 f.write(ligne[2:] + "\n"); f.flush(); nb += 1
                                 if nb % 25 == 0:
                                     print("  %d mesures enregistrées (dernière : %s)" % (nb, ligne[2:]))
