@@ -3,7 +3,7 @@
 TAB-Géoloc – Apprentissage du niveau de danger (réseau de neurones)
 ===================================================================
 
-Ce programme sert à 3 choses :
+Ce programme sert à 4 choses :
 
   0) ENVOYER un programme sur le Tab5 (trouve tout seul la carte et le port) :
         python analyse_reseau.py televerser Tab5_Collecte
@@ -147,8 +147,6 @@ def capture(port, fichier):
         port = trouver_port()
     if fichier.upper() == "AUTO":                 # nom de fichier automatique avec la date et l'heure
         fichier = os.path.join(DOSSIER_MESURES, time.strftime("mesures_%Y%m%d_%H%M.csv"))
-    if fichier.upper() == "AUTO":
-        fichier = os.path.join(DOSSIER_MESURES, "mesures_%s.csv" % time.strftime("%Y%m%d_%H%M"))
     os.makedirs(os.path.dirname(fichier) or ".", exist_ok=True)
     print("Écoute de %s -> %s   (Ctrl+C pour arrêter)" % (port, fichier))
     nb = 0
@@ -375,8 +373,6 @@ if __name__ == "__main__":
         televerser(sys.argv[2])
     elif len(sys.argv) >= 4 and sys.argv[1] == "capture":
         capture(sys.argv[2], sys.argv[3])
-    elif len(sys.argv) >= 3 and sys.argv[1] == "televerser":
-        televerser(sys.argv[2])
     elif len(sys.argv) >= 2 and sys.argv[1] == "demo":
         demo()
     elif len(sys.argv) >= 2 and sys.argv[1] == "analyse":
