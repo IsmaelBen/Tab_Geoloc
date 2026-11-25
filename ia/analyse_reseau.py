@@ -133,7 +133,15 @@ def televerser(dossier_sketch):
         pass
     port = trouver_port()
     print("Carte : %s\nPort  : %s\nProgramme : %s\nCompilation + envoi (1 à 3 minutes)..." % (fqbn, port, dossier_sketch))
-    r = subprocess.run(base + ["compile", "--fqbn", fqbn, "--upload", "-p", port, os.path.abspath(dossier_sketch)])
+    # la sortie est affichée ET gardée dans un fichier journal (utile pour lire les erreurs)
+    journal = "journal_%s.txt" % os.path.basename(os.path.normpath(dossier_sketch))
+    with open(journal, "w", encoding="utf-8") as j:
+        p = subprocess.Popen(base + ["compile", "--fqbn", fqbn, "--upload", "-p", port, os.path.abspath(dossier_sketch)],
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
+        for ligne in p.stdout:
+            print(ligne, end=""); j.write(ligne)
+        p.wait()
+    r = p
     print("\nTERMINÉ : programme envoyé sur le Tab5." if r.returncode == 0 else "\nÉCHEC : voir le message ci-dessus.")
     time.sleep(1)
     capture_ecran("televersement_%s_%s" % (os.path.basename(os.path.normpath(dossier_sketch)), "ok" if r.returncode == 0 else "echec"))
@@ -150,20 +158,31 @@ def capture(port, fichier):
     os.makedirs(os.path.dirname(fichier) or ".", exist_ok=True)
     print("Écoute de %s -> %s   (Ctrl+C pour arrêter)" % (port, fichier))
     nb = 0
-    with serial.Serial(port, 115200, timeout=1) as s, open(fichier, "a", encoding="utf-8") as f:
+    with open(fichier, "a", encoding="utf-8") as f:
         if f.tell() == 0:
             f.write(";".join(COLONNES) + "\n")
         try:
             while True:
-                ligne = s.readline().decode("utf-8", "ignore").strip()
-                if ligne.startswith("M;"):              # seules les lignes de mesure commencent par "M;"
-                    f.write(ligne[2:] + "\n"); f.flush(); nb += 1
-                    if nb % 25 == 0:
-                        print("  %d mesures enregistrées (dernière : %s)" % (nb, ligne[2:]))
-                elif ligne:
-                    print("  [Tab5] " + ligne)
-                    if ligne.startswith("# fin session"):
-                        capture_ecran("collecte_%d_mesures" % nb)
+                # si le Tab5 redémarre ou est débranché, on attend qu'il revienne et on reprend
+                try:
+                    with serial.Serial(port, 115200, timeout=1) as s:
+                        while True:
+                            ligne = s.readline().decode("utf-8", "ignore").strip()
+                            if ligne.startswith("M;"):      # seules les lignes de mesure commencent par "M;"
+                                f.write(ligne[2:] + "\n"); f.flush(); nb += 1
+                                if nb % 25 == 0:
+                                    print("  %d mesures enregistrées (dernière : %s)" % (nb, ligne[2:]))
+                            elif ligne:
+                                print("  [Tab5] " + ligne)
+                                if ligne.startswith("# fin session"):
+                                    capture_ecran("collecte_%d_mesures" % nb)
+                except (serial.SerialException, OSError):
+                    print("  Tab5 déconnecté (redémarrage ?) : reconnexion...")
+                    time.sleep(2)
+                    try:
+                        port = trouver_port()
+                    except SystemExit:
+                        pass
         except KeyboardInterrupt:
             pass
     print("Terminé : %d mesures dans %s" % (nb, fichier))

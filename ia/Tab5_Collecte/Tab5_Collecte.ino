@@ -145,7 +145,7 @@ float temperature() {           // capteur interne du Tab5 (dans la centrale ine
 // ============================================================ ÉCRAN
 M5Canvas ecran(&M5.Display);
 int W, H;
-const int GX = 30, GY = 600, BW = 210, BH = 170, ESP = 15;   // grille des boutons
+const int GX = 30, GY = 600, BW = 210, BH = 170, ECART_BTN = 15;   // grille des boutons
 bool enreg = false;
 int dist_choisie = -1;
 uint32_t debut_enreg = 0, session = 0, nb_lignes = 0, nb_enreg = 0;
@@ -201,7 +201,7 @@ void dessiner() {
     ecran.drawString(t, W / 2, 470);
     ecran.setFont(&fonts::FreeSansBold24pt7b);
     for (int k = 0; k < NB_DIST; k++) {
-      int x = GX + (k % 3) * (BW + ESP), y = GY + (k / 3) * (BH + ESP);
+      int x = GX + (k % 3) * (BW + ECART_BTN), y = GY + (k / 3) * (BH + ECART_BTN);
       ecran.fillRoundRect(x, y, BW, BH, 18, k == NB_DIST - 1 ? 0x4208 : 0x1A69);
       ecran.setTextColor(TFT_WHITE);
       ecran.setTextDatum(middle_center);
@@ -213,7 +213,7 @@ void dessiner() {
 
 int bouton_touche(int tx, int ty) {
   for (int k = 0; k < NB_DIST; k++) {
-    int x = GX + (k % 3) * (BW + ESP), y = GY + (k / 3) * (BH + ESP);
+    int x = GX + (k % 3) * (BW + ECART_BTN), y = GY + (k / 3) * (BH + ECART_BTN);
     if (tx >= x && tx < x + BW && ty >= y && ty < y + BH) return k;
   }
   return -1;

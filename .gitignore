@@ -6,3 +6,5 @@ build/
 # Résultats générés (on garde seulement resultats_demo/)
 ia/resultats/
 ia/captures/
+ia/journal_*.txt
+ia/diag_usb.txt
